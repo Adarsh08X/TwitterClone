@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+
+
+    <div class="heading"><h5 for="exampleFormControlTextarea1" >Edit Profile</h5></div>
+
+ <div class="editing">
+    {% if user.twitterprofile.avatar %}
+        <figure class="image is-128*128" >
+         <img src="{{ user.twitterprofile.avatar.url }}" height="128px" width="128px">
+        </figure>
+    {% endif %}
+
+    <hr>
+<table>
+    <form method="post"  id="edit" enctype="multipart/form-data" action=".">
+         {% csrf_token %}
+          {{ form|crispy }}
+
+    </form>
+    </table>
+ <button class="btn btn-danger m-1" form="edit">Save</button>
+ <div class="feed-end">
+
+    </div>
+    </div>
+
+{% endblock %}

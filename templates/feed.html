@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Feed{% endblock %}
+
+ {% load humanize %}
+
+{% load static %}
+
+{% block style %}  {%endblock %}
+
+{% block content %}
+
+     <div class="middle">
+    <div class="heading"><h5>Home</h5></div>
+    <div class="handle-tweets" id="feedApp"   >
+       <div class="input-tweet">
+           <form class="form-group"  v-on:submit.prevent="submitTweet()" >
+           
+               <textarea class="form-control   mx-auto my-1" v-model="body"  id="tweetArea"  rows="2"  placeholder="What's on your mind..." style="border-color: #b0b0b0;" ></textarea>
+               <div align="end" style="padding-right: 2.5%" ><button type="submit" class="btn btn-danger  mx=5" id="button">Tweet</button>
+                </div>
+           </form>
+       </div>
+    <div class="show-tweet">
+     <div class="tweet" v-for="tweet in tweets">
+         <article class="media">
+               <figure class="media-left">
+                 <p class="image ">
+                     <img :src="tweet.avatar" height="64px" width="64px"  style="border-radius: 50%;padding: 5px">
+                 </p>
+             </figure>
+         <div class="media-content">
+             <div class="content">
+                 <p ><strong>[[  tweet.tweeter ]]</strong>
+                    <small>[[tweet.created_at]]</small>
+                 <br>
+                      [[tweet.body]]
+                     <br>
+                    <div class="like-area">
+                <a @click="likeTweet({{ tweet.id }})" v-if="!liked_tweets.includes({{ tweet.id }})"><button class="btn btn-danger btn-sm">Like</button> </a>
+                <span v-if="liked_tweets.includes({{ tweet.id }})"><button class="btn btn-danger btn-sm">Liked</button></span>
+                <small id="likes-{{ tweet.id }}">{{ tweet.likes.count }} likes</small>
+                 </div>
+                 </p>
+     </div>
+    </div>
+         </article>
+        </div>
+
+        {% for tweet in tweets %}
+        <div class="tweet">
+         <article class="media">
+               <figure class="media-left">
+                 <p class="image ">
+                     {% if tweet.created_by.twitterprofile.avatar %}
+                     <img src="{{ tweet.created_by.twitterprofile.avatar.url }}" height="64px" width="64px"  style="border-radius: 50%;padding: 5px">
+                         {% else %}
+                         <img src="/media/uploads/default.png" height="64px" width="64px"  style="border-radius: 50%;padding: 5px">
+                     {% endif %}
+                 </p>
+             </figure>
+         <div class="media-content">
+             <div class="content">
+            <p ><strong>{{ tweet.created_by.username }}</strong>
+            <small>{{tweet.created_at|naturaltime}}</small>
+            <br>
+            {{ tweet.body }}
+            <br>
+                <div class="like-area">
+                <a @click="likeTweet({{ tweet.id }})" v-if="!liked_tweets.includes({{ tweet.id }})"><button class="btn btn-danger btn-sm">Like</button> </a>
+                <span v-if="liked_tweets.includes({{ tweet.id }})"><button class="btn btn-danger btn-sm">Liked</button></span>
+                <small id="likes-{{ tweet.id }}">{{ tweet.likes.count }} likes</small>
+                 </div>
+            </p>
+        </div>
+         </div>
+         </article>
+        </div>
+        {% endfor %}
+             <div class="feed-end">
+
+            </div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="search"  >
+         <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'search' %}">
+      <input  type="text" name="query" value="{{query}}" class="form-control mr-sm-2" type="search"  placeholder="Search" aria-label="Search" style="box-shadow: none!important;border-color: #b0b0b0;">
+      <button class="btn btn-outline-danger my-2 my-sm-1" type="submit" href="{% url 'search' %}">Search</button>
+    </form>
+
+    </div>
+
+
+{% endblock %}
+
+ {% block script %}
+
+     <script>
+
+       new Vue({
+           el: '#feedApp',
+           delimiters : ['[[',']]'],
+           data(){
+               return {
+                   tweets: [],
+                   body: '',
+                   tweeter:  '{{ request.user.username }}',
+                   created_at: 'Now',
+                   avatar: '{% if request.user.twitterprofile.avatar %}{{ request.user.twitterprofile.avatar.url }}{% endif %}',
+                   liked_tweets: [{% for tweet in tweets %}{% if tweet.liked %}{{ tweet.id }},{% endif %}{% endfor %}]
+               }
+             console.log('{{request.user.username}}')
+           },
+
+           methods: {
+               likeTweet(tweet_id) {
+                   this.liked_tweets.push(parseInt(tweet_id));
+                   var tweet = {
+                       'tweet_id': tweet_id
+                   };
+                   fetch('/api/add_like/', {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json',
+                           'X-CSRFToken': '{{ csrf_token }}'
+                       },
+                       credentials: 'same-origin',
+                       body: JSON.stringify(tweet)
+                   })
+                       .then((response) => {
+                           console.log(response);
+                       })
+                       .catch((error) => {
+                           console.log(error);
+                       });
+                   const el = document.getElementById('likes-'+tweet_id);
+                   const likes = parseInt(el.innerHTML.split(' ')[0])+1;
+
+                   el.innerHTML = likes + ' likes';
+               },
+
+               submitTweet(){
+                   console.log('SubmitTweet');
+                   if(this.body.length>0)
+                   {
+                       var tweet={
+                           'body': this.body,
+                           'tweeter': this.tweeter,
+                           'created_at': this.created_at,
+                           'avatar': this.avatar
+                       };
+                       this.tweets.unshift(tweet);
+
+                       //Send to Database
+                       fetch('/api/add_tweet/',{
+                           method: 'POST',
+                           headers: {
+                               'Content-Type': 'application/json',
+                               'X-CSRFToken': '{{ csrf_token }}'
+                           },
+                           credentials: 'same-origin',
+                           body: JSON.stringify(tweet)
+
+                   })
+                       .then((response)=>{
+                           console.log(response);
+                       })
+                       .catch((error)=>{
+                           console.log(error);
+                       });
+                   }
+                   this.body='';
+               }
+           }
+       })
+     </script>
+ {% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Search{% endblock %}
+
+{% load humanize %}
+{% block content %}
+    <div class="heading"><h5 for="exampleFormControlTextarea1" >Search</h5></div>
+    <div class="search2 " >
+
+        <form class="form-inline my-2 my-lg-0 d-flex justify-content-center" method="get" action="{% url 'search' %}" >
+            <input class="form-control mr-sm-2" name="query" value="{{ query }}" type="search" placeholder="Search" aria-label="Search" style="width: 70%; box-shadow: none!important; border-color: #b0b0b0;">
+            <button class="btn btn-outline-danger my-2 my-sm-0" type="submit" href="{% url 'search' %}">Search</button>
+        </form>
+        <div class="results ">
+            <p>Search Term : "{{ query }}"</p>
+            {% for tweeter in tweeters %}
+                <div class="srch justify-content-between">
+                    <figure class="media-left">
+                 <p class="image ">
+                     {% if tweeter.twitterprofile.avatar %}
+                     <img src="{{ tweeter.twitterprofile.avatar.url }}" height="64px" width="64px"  style="border-radius: 50%;padding: 5px">
+                     {% endif %}
+                 <small style="padding-left: 5px"><a href="/u/{{ tweeter.username }}">{{ tweeter.username }}</a> </small>
+                 </p>
+             </figure>
+
+                </div>
+
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% load humanize %}
+{% block title %}{{ user.username }}{% endblock %}
+{% block content %}
+
+    <div class="user">
+    <div class="heading"><h5 for="exampleFormControlTextarea1" >{{ user.username }}</h5></div>
+<div class="handle-tweets" id="myTweets" style="padding: 5px">
+       <h1 class="title"  >{{ user.username }}</h1>
+
+    {% if user.twitterprofile.avatar %}
+        <figure class="image" >
+         <img src="{{ user.twitterprofile.avatar.url }}" height="128px" width="128px">
+        </figure>
+    {%else%}
+         <img src="/media/uploads/default.png" height="200px" width="200px" >
+    {% endif %}
+    {% if user.twitterprofile.bio %}
+        <p>{{ user.twitterprofile.bio}}</p>
+    {% endif %}
+    {% if user == request.user %}
+         <a class="btn btn-danger" href="{% url 'edit_profile'  %}" >Edit Profile</a>
+    {% endif %}
+       <p><b>{{ user.twitterprofile.followed_by.count }}</b> Followers  <b>{{ user.twitterprofile.follows.count }}</b> Following</p>
+
+    {% if user != request.user %}
+        {% if request.user.twitterprofile in user.twitterprofile.followed_by.all %}
+            <a class="btn btn-danger" href="{% url 'unfollow_tweeter' user.username %}" >Following</a>
+            {% else %}
+                 <a class="btn btn-outline-danger" href="{% url 'follow_tweeter' user.username %}">Follow</a>
+            {% endif %}
+    {% endif %}
+
+    <div class="show-tweet">
+    <h5>My Tweets</h5>
+        {% for tweet in tweets %}
+         <div class="tweet">
+         <article class="media">
+             <figure class="media-left">
+                 <p class="image ">
+                     {% if user.twitterprofile.avatar.url %}
+                     <img src="{{ user.twitterprofile.avatar.url }}" height="64px" width="64px"  style="border-radius: 50%;padding: 5px">
+                     {% else %}
+                         <img src="/media/uploads/default.png" height="200px" width="200px" >
+                     {% endif %}
+                 </p>
+             </figure>
+         <div class="media-content">
+             <div class="content">
+          <p>
+              <strong>{{ tweet.created_by.username }}</strong>
+            <small>{{tweet.created_at|naturaltime}}</small>
+            <br>
+             {{ tweet.body }}
+
+                 <br>
+               <div class="like-area">
+              <a @click="likeTweet({{ tweet.id }})" v-if="!liked_tweets.includes({{ tweet.id }})"><button class="btn btn-danger btn-sm">Like</button></a>
+              <span v-if="liked_tweets.includes({{ tweet.id }})"><button class="btn btn-danger btn-sm">Liked</button></span>
+                <small id="likes-{{ tweet.id }}">{{ tweet.likes.count }} likes</small>
+             </div>
+             </p>
+                 </div>
+         </div>
+         </article>
+
+        </div>
+        {% endfor %}
+      <div class="feed-end">
+
+            </div>
+    </div>
+   </div>
+    </div>
+    <div class="search"  >
+         <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'search' %}">
+            <input  type="text" name="query" value="{{query}}" class="form-control mr-sm-2" type="search"  placeholder="Search" aria-label="Search" style="box-shadow: none!important;border-color: #b0b0b0;">
+            <button class="btn btn-outline-danger my-2 my-sm-1" type="submit" href="{% url 'search' %}">Search</button>
+         </form>
+    </div>
+
+
+
+{% endblock %}
+
+
+{% block script %}
+    <script>
+    new Vue({
+           el: '#myTweets',
+           delimiters : ['[[',']]'],
+           data(){
+               return {
+                    liked_tweets: [{% for tweet in tweets %}{% if tweet.liked %}{{ tweet.id }},{% endif %}{% endfor %}]
+               }
+
+           },
+
+           methods: {
+               likeTweet(tweet_id) {
+                   this.liked_tweets.push(parseInt(tweet_id));
+                   var tweet = {
+                       'tweet_id': tweet_id
+                   };
+                   fetch('/api/add_like/', {
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json',
+                           'X-CSRFToken': '{{ csrf_token }}'
+                       },
+                       credentials: 'same-origin',
+                       body: JSON.stringify(tweet)
+                   })
+                       .then((response) => {
+                           console.log(response);
+                       })
+                       .catch((error) => {
+                           console.log(error);
+                       });
+                   const el = document.getElementById('likes-'+tweet_id);
+                   var likes = parseInt(el.innerHTML);
+                   likes+=1;
+                   el.innerHTML = likes + ' likes';
+               }
+           }
+       })
+
+    </script>
+
+{% endblock %}

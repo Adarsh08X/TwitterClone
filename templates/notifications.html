@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}Notifications{% endblock %}
+
+ {% load humanize %}
+
+{% block content %}
+     <div class="heading"><h5 for="exampleFormControlTextarea1"  >Notifications</h5></div>
+     <div class="container">
+        {% if not notifications %}
+            <p>You Have no new Notifications!</p>
+     {% endif %}
+     <div class="show-tweet">
+         {% for notification in notifications %}
+             <article class="media">
+               <figure class="media-left">
+                 <p class="image ">
+                     {% if notification.created_by.twitterprofile.avatar %}
+                     <img src="{{ notification.created_by.twitterprofile.avatar.url }}" height="64px" width="64px">
+                     {% endif %}
+                 </p>
+             </figure>
+                <div class="media-content">
+                    <div class="content">
+                        <p >
+                            {% if notification.notification_type == 'follower' %}
+                                <a href="{% url 'notifications' %}?goto=twitterprofile&notification={{ notification.id }}">
+                                    <strong>{{ notification.created_by.username }}</strong> followed you<br>
+                                    <small>{{ notification.created_at|naturaltime }}</small>
+                                </a>
+                                {% elif notification.notification_type == 'like' %}
+                                <a href="{% url 'notifications' %}?goto=twitterprofile&notification={{ notification.id }}">
+                                    <strong>{{ notification.created_by.username }}</strong> liked one of  your tweet<br>
+                                    <small>{{ notification.created_at|naturaltime }}</small>
+                                {% elif notification.notification_type == 'mention' %}
+                                      <a href="{% url 'notifications' %}?goto=twitterprofile&notification={{ notification.id }}">
+                                          <strong>{{ notification.created_by.username }}</strong> mentioned you in their tweet<br>
+                                <small>{{ notification.created_at|naturaltime }}</small>
+                                </a>
+                            {% endif %}
+                        </p>
+                     </div>
+                     </div>
+                 </article>
+         {% endfor%}
+     </div>
+     </div>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!doctype html>
+
+{% load humanize %}
+{% load static %}
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    {% block style %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
+    <title>{% block title %} {% endblock %}</title>
+  </head>
+  <body>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+   
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <img src="/media/nav.png" height="60px" width="60px" class="m-1">
+  <a class="navbar-brand text-danger" href="/" >RedTwitter</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+       <ul class="navbar-nav mr-auto">
+           {% if request.user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link" href="/feed">Home</a>
+            </li>
+               <li class="nav-item">
+                <a class="nav-link" href="/u/{{ request.user.username }}">Profile</a>
+                </li>
+               <li class="nav-item">
+                <a class="nav-link" href="/notifications/">Notifications ({{ notifications.count }})</a>
+                </li>
+               <li class="nav-item">
+                <a class="nav-link" href="/search/">Search</a>
+                </li>
+
+           {% endif %}
+       </ul>
+      </div>
+
+  <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+    <ul class="navbar-nav ">
+        {% if request.user.is_authenticated %}
+            <a class="nav-link" href="{% url 'logout' %}"><button class="btn btn-outline-danger my-2 my-sm-0" >Log Out</button></a>
+        {% else %}
+            <a class="nav-link" href="{% url 'signup' %}"><button class="btn btn-outline-danger my-2 my-sm-0" >Sign Up</button></a>
+            <a class="nav-link" href="{% url 'login' %}"> <button class="btn btn-outline-danger my-2 my-sm-0" >Log In</button></a>
+        {% endif %}
+    </ul>
+
+  </div>
+</nav>
+    {% if request.user.is_authenticated  %}
+            <div class="profile" id="mini-profile" >
+
+                {% if request.user.twitterprofile.avatar %}
+                    <div class="container">
+                        <figure class="image d-flex justify-content-center" >
+                            <img src="{{ request.user.twitterprofile.avatar.url }}" height="200px" width="200px" >
+                        </figure>
+                    </div>
+                    {% else %}
+                    <img src="/media/uploads/default.png" height="200px" width="200px" >
+                   {% endif %}
+
+                 <strong class="username d-flex justify-content-center">{{ request.user.username }}</strong>
+
+            {% if user.twitterprofile.bio %}
+                <small class="d-flex justify-content-center" >{{ request.user.twitterprofile.bio}}</small>
+            {% endif %}
+            </div>
+
+    {% endif %}
+
+  {% block content %} {% endblock %}
+  <!--Script-->
+     <script src="https://unpkg.com/vue@2.1.8/dist/vue.js" type="text/javascript"></script>
+    {% block script %}
+    {% endblock %}
+  <!--EndScript-->
+  </body>
+
+</html>
